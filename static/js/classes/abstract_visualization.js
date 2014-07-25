@@ -130,7 +130,7 @@ var AbstractVisualization = Fiber.extend(function() {
         },
 
         play: function() {
-            if (!this.playing && this._isControllerEnabled("play")) {
+            if (!this.playing && !this._findController("play").disabled) {
                   this.playing = true;
                   this._changeControllerText("play", "pause");
                   this._player();
@@ -142,9 +142,7 @@ var AbstractVisualization = Fiber.extend(function() {
         pause: function() {
             clearTimeout(this.timer);
             this.playing = false;
-            if (this._isControllerEnabled("play")) {
-                this._changeControllerText("play", "play");
-            }
+            this._changeControllerText("play","play");
         },
 
         /* Private */
@@ -205,34 +203,12 @@ var AbstractVisualization = Fiber.extend(function() {
             return (_.isUndefined(this.gui.__folders[folderName])) ? null : this.gui.__folders[folderName];
         },
 
-        _disableController: function(controllerName) {
-            var controller = this._findController(controllerName);
-            if (!controller || $(controller.__li).children(".disabled").length > 0) {
-                return;
-            }
-            $(controller.__li).append("<div class='disabled'></div>");
-        },
-
-        _enableController: function(controllerName) {
-            var controller = this._findController(controllerName);
-            if (!controller) return;
-
-            $(controller.__li).children().remove(".disabled");
-        },
 
         _hideController: function(controllerName) {
             var controller = this._findController(controllerName);
             if (!controller) return;
 
             $(controller.__li).addClass("hidden");
-        },
-
-        _isControllerEnabled: function(controllerName) {
-            var controller = this._findController(controllerName);
-            if (!controller || $(controller.__li).children(".disabled").length > 0) {
-                return false;
-            }
-            return true;
         },
 
         _hideFolder: function(folderName) {
@@ -351,18 +327,19 @@ var AbstractVisualization = Fiber.extend(function() {
             if (this.guiIteration) {
                 // if counter is at max:
                 if (this.iteration >= this.guiIteration.__max) {
-                    this._disableController("play");
-                    this._disableController("next");
-                    this._enableController("prev");
+                    this._findController("play").disabled = true;
+                    this._findController("next").disabled = true;
+                    this._findController("prev").disabled = false;
+                    console.log("PLAY IS: ",this._findController("play").disabled);
                 // if counter is at min:
                 } else if (this.iteration <= this.guiIteration.__min) {
-                    this._enableController("play");
-                    this._enableController("next");
-                    this._disableController("prev");
+                    this._findController("play").disabled = false;
+                    this._findController("next").disabled = false;
+                    this._findController("prev").disabled = true;
                 } else {
-                    this._enableController("play");
-                    this._enableController("next");
-                    this._enableController("prev"); 
+                    this._findController("play").disabled = false;
+                    this._findController("next").disabled = false;
+                    this._findController("prev").disabled = false; 
                 }
             }
         },
